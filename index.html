@@ -524,59 +524,90 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('selectstart', e => e.preventDefault());
 
 // ============ NEWS TICKER ============
-const NEWS_FEEDS = [
-  'https://news.google.com/rss?hl=en-GB&gl=IE&ceid=IE:en',
-  'https://feeds.bbci.co.uk/news/rss.xml',
+// Multiple RSS-to-JSON services as fallbacks
+const RSS_SERVICES = [
+  (url) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
 ];
 
+const NEWS_FEEDS = [
+  { url: 'https://news.google.com/rss?hl=en-GB&gl=IE&ceid=IE:en', name: 'Google News' },
+  { url: 'https://feeds.bbci.co.uk/news/rss.xml', name: 'BBC News' },
+];
+
+function parseXMLFeed(text, sourceName) {
+  const articles = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'text/xml');
+  const items = doc.querySelectorAll('item');
+  items.forEach((item, i) => {
+    if (i >= 10) return;
+    const title = item.querySelector('title')?.textContent || '';
+    if (title) articles.push({ title, source: sourceName });
+  });
+  return articles;
+}
+
 async function fetchNews() {
-  try {
-    const allArticles = [];
+  const allArticles = [];
 
-    for (const feed of NEWS_FEEDS) {
-      try {
-        const resp = await fetch(
-          `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed)}`
-        );
-        const data = await resp.json();
-        if (data.status === 'ok' && data.items) {
-          const source = data.feed?.title?.replace(/ - RSS| - Online/, '') || 'News';
-          for (const item of data.items.slice(0, 8)) {
-            allArticles.push({ title: item.title, source });
-          }
+  for (const feed of NEWS_FEEDS) {
+    // Try rss2json first
+    try {
+      const resp = await fetch(RSS_SERVICES[0](feed.url));
+      const data = await resp.json();
+      if (data.status === 'ok' && data.items?.length) {
+        for (const item of data.items.slice(0, 8)) {
+          allArticles.push({ title: item.title, source: feed.name });
         }
-      } catch (e) {}
-    }
+        continue;
+      }
+    } catch (e) {}
 
-    if (!allArticles.length) {
-      document.getElementById('news-scroll').innerHTML =
-        '<div class="news-item">No headlines available</div>';
-      return;
-    }
-
-    // Shuffle
-    for (let i = allArticles.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allArticles[i], allArticles[j]] = [allArticles[j], allArticles[i]];
-    }
-
-    const items = allArticles.map(a =>
-      `<div class="news-item"><span class="news-source">${a.source.replace(/</g, '&lt;')}</span> ${a.title.replace(/</g, '&lt;')}</div>`
-    ).join('<span class="news-dot">&bull;</span>');
-
-    const scrollEl = document.getElementById('news-scroll');
-    scrollEl.innerHTML = items + '<span class="news-dot">&bull;</span>' + items;
-
-    requestAnimationFrame(() => {
-      const width = scrollEl.scrollWidth / 2;
-      const speed = 60;
-      const duration = width / speed;
-      scrollEl.style.animationDuration = duration + 's';
-    });
-  } catch (err) {
-    document.getElementById('news-scroll').innerHTML =
-      `<div class="news-item">News: ${err.message}</div>`;
+    // Fallback: allorigins CORS proxy + XML parse
+    try {
+      const resp = await fetch(RSS_SERVICES[1](feed.url));
+      const text = await resp.text();
+      allArticles.push(...parseXMLFeed(text, feed.name));
+    } catch (e) {}
   }
+
+  // If still nothing, try the Apps Script proxy
+  if (!allArticles.length && CONFIG.proxyUrl) {
+    try {
+      const resp = await fetch(CONFIG.proxyUrl + '?action=news');
+      const data = await resp.json();
+      for (const a of (data.articles || [])) {
+        allArticles.push({ title: a.title, source: a.source || 'News' });
+      }
+    } catch (e) {}
+  }
+
+  const scrollEl = document.getElementById('news-scroll');
+
+  if (!allArticles.length) {
+    scrollEl.innerHTML = '<div class="news-item">No headlines available</div>';
+    return;
+  }
+
+  // Shuffle
+  for (let i = allArticles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allArticles[i], allArticles[j]] = [allArticles[j], allArticles[i]];
+  }
+
+  const items = allArticles.map(a =>
+    `<div class="news-item"><span class="news-source">${a.source.replace(/</g, '&lt;')}</span> ${a.title.replace(/</g, '&lt;')}</div>`
+  ).join('<span class="news-dot">&bull;</span>');
+
+  scrollEl.innerHTML = items + '<span class="news-dot">&bull;</span>' + items;
+
+  requestAnimationFrame(() => {
+    const width = scrollEl.scrollWidth / 2;
+    const speed = 60;
+    const duration = width / speed;
+    scrollEl.style.animationDuration = duration + 's';
+  });
 }
 
 fetchNews();
