@@ -524,36 +524,52 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('selectstart', e => e.preventDefault());
 
 // ============ NEWS TICKER ============
+const NEWS_FEEDS = [
+  'https://news.google.com/rss?hl=en-GB&gl=IE&ceid=IE:en',
+  'https://feeds.bbci.co.uk/news/rss.xml',
+];
+
 async function fetchNews() {
-  if (!CONFIG.proxyUrl) {
-    document.getElementById('news-scroll').innerHTML =
-      '<div class="news-item">Deploy Apps Script proxy for live news</div>';
-    return;
-  }
-
   try {
-    const resp = await fetch(CONFIG.proxyUrl + '?action=news');
-    const data = await resp.json();
-    const articles = data.articles || [];
+    const allArticles = [];
 
-    if (!articles.length) {
+    for (const feed of NEWS_FEEDS) {
+      try {
+        const resp = await fetch(
+          `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed)}`
+        );
+        const data = await resp.json();
+        if (data.status === 'ok' && data.items) {
+          const source = data.feed?.title?.replace(/ - RSS| - Online/, '') || 'News';
+          for (const item of data.items.slice(0, 8)) {
+            allArticles.push({ title: item.title, source });
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!allArticles.length) {
       document.getElementById('news-scroll').innerHTML =
         '<div class="news-item">No headlines available</div>';
       return;
     }
 
-    // Build ticker content — duplicate for seamless loop
-    const items = articles.map(a =>
-      `<div class="news-item"><span class="news-source">${a.source}</span> ${a.title.replace(/</g, '&lt;')}</div>`
+    // Shuffle
+    for (let i = allArticles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allArticles[i], allArticles[j]] = [allArticles[j], allArticles[i]];
+    }
+
+    const items = allArticles.map(a =>
+      `<div class="news-item"><span class="news-source">${a.source.replace(/</g, '&lt;')}</span> ${a.title.replace(/</g, '&lt;')}</div>`
     ).join('<span class="news-dot">&bull;</span>');
 
     const scrollEl = document.getElementById('news-scroll');
     scrollEl.innerHTML = items + '<span class="news-dot">&bull;</span>' + items;
 
-    // Set animation speed based on content width
     requestAnimationFrame(() => {
       const width = scrollEl.scrollWidth / 2;
-      const speed = 60; // pixels per second
+      const speed = 60;
       const duration = width / speed;
       scrollEl.style.animationDuration = duration + 's';
     });
