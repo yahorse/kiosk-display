@@ -313,6 +313,10 @@ const CONFIG = {
   // Weather units: 'fahrenheit' or 'celsius'
   weatherUnits: 'celsius',
 
+  // Fallback location if GPS denied (Dublin, Ireland)
+  fallbackLat: 53.35,
+  fallbackLon: -6.26,
+
   // Refresh intervals
   weatherRefreshMs: 15 * 60 * 1000,
   calendarRefreshMs: 5 * 60 * 1000,
@@ -370,10 +374,17 @@ async function fetchWeather() {
   const el = document.getElementById('weather');
 
   try {
-    const pos = await new Promise((resolve, reject) =>
-      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
-    );
-    const { latitude: lat, longitude: lon } = pos.coords;
+    let lat, lon;
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+      );
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+    } catch (geoErr) {
+      lat = CONFIG.fallbackLat;
+      lon = CONFIG.fallbackLon;
+    }
 
     const unit = CONFIG.weatherUnits === 'fahrenheit' ? 'fahrenheit' : 'celsius';
     const windUnit = unit === 'fahrenheit' ? 'mph' : 'kmh';
