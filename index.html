@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Kiosk</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 20px;
+    padding: 24px 24px 48px 24px;
+    cursor: none;
+  }
+
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .clock { text-align: center; }
+
+  .clock-time {
+    font-size: clamp(64px, 12vw, 140px);
+    font-weight: 300;
+    letter-spacing: -2px;
+    line-height: 1;
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0b0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .clock-seconds {
+    font-size: clamp(24px, 4vw, 48px);
+    font-weight: 300;
+    opacity: 0.4;
+    vertical-align: super;
+  }
+
+  .clock-date {
+    font-size: clamp(14px, 2.5vw, 24px);
+    font-weight: 400;
+    color: #888;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .weather {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 20px 32px;
+    backdrop-filter: blur(10px);
+  }
+
+  .weather-icon { font-size: clamp(36px, 5vw, 56px); }
+  .weather-info { display: flex; flex-direction: column; }
+
+  .weather-temp {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 600;
+  }
+
+  .weather-desc {
+    font-size: clamp(12px, 1.8vw, 16px);
+    color: #888;
+    text-transform: capitalize;
+  }
+
+  .weather-details {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: clamp(10px, 1.4vw, 13px);
+    color: #666;
+  }
+
+  .weather-details span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .calendar-header {
+    font-size: clamp(14px, 2vw, 20px);
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+
+  .calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: none;
+  }
+
+  .calendar-events::-webkit-scrollbar { display: none; }
+
+  .event {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: background 0.3s;
+  }
+
+  .event.now {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .event-time {
+    font-size: clamp(11px, 1.5vw, 14px);
+    color: #6366f1;
+    font-weight: 600;
+    min-width: 60px;
+    padding-top: 2px;
+  }
+
+  .event.now .event-time { color: #818cf8; }
+  .event-content { flex: 1; }
+
+  .event-title {
+    font-size: clamp(13px, 1.8vw, 17px);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .event-location {
+    font-size: clamp(10px, 1.3vw, 13px);
+    color: #666;
+    margin-top: 3px;
+  }
+
+  .event-bar {
+    width: 3px;
+    border-radius: 3px;
+    background: #6366f1;
+    align-self: stretch;
+    min-height: 20px;
+  }
+
+  .no-events {
+    color: #444;
+    font-size: clamp(14px, 2vw, 18px);
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  /* News ticker */
+  .news-ticker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  .news-label {
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .news-scroll {
+    display: flex;
+    animation: ticker linear infinite;
+    white-space: nowrap;
+  }
+
+  .news-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 32px;
+    font-size: 14px;
+    color: #ccc;
+    flex-shrink: 0;
+  }
+
+  .news-source {
+    color: #6366f1;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .news-dot {
+    color: #333;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .status-bar {
+    position: fixed;
+    bottom: 44px;
+    left: 24px;
+    right: 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #333;
+  }
+
+  .loading { color: #444; font-size: 14px; }
+
+  .error {
+    color: #ef4444;
+    font-size: 13px;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 10px;
+  }
+
+  @media (max-aspect-ratio: 1/1) {
+    body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="left-panel">
+  <div class="clock">
+    <div class="clock-time" id="clock-time">--:--</div>
+    <div class="clock-date" id="clock-date">---</div>
+  </div>
+  <div class="weather" id="weather">
+    <div class="loading">Getting weather...</div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="calendar-header">Today's Schedule</div>
+  <div class="calendar-events" id="calendar-events">
+    <div class="loading">Loading calendar...</div>
+  </div>
+</div>
+
+<div class="news-ticker" id="news-ticker">
+  <div class="news-label">Live</div>
+  <div class="news-scroll" id="news-scroll">
+    <div class="news-item">Loading headlines...</div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <span id="status-left"></span>
+  <span id="status-right"></span>
+</div>
+
+<script>
+// ============ CONFIG ============
+const CONFIG = {
+  // Google Apps Script proxy URL (deploy google-apps-script.js as a web app)
+  // Leave empty for demo mode
+  proxyUrl: 'https://script.google.com/macros/s/AKfycbyQjgAtglM0tZDvYJc5YBHisk-Lad7brys6nfRZJRoc8gtffPi0NRiICmQCWQwhYMP7lQ/exec',
+
+  // Weather units: 'fahrenheit' or 'celsius'
+  weatherUnits: 'fahrenheit',
+
+  // Refresh intervals
+  weatherRefreshMs: 15 * 60 * 1000,
+  calendarRefreshMs: 5 * 60 * 1000,
+  newsRefreshMs: 10 * 60 * 1000,
+};
+
+// ============ CLOCK ============
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+
+  document.getElementById('clock-time').innerHTML =
+    `${h12}:${m} <span class="clock-seconds">${ampm}</span>`;
+
+  const options = { weekday: 'long', month: 'long', day: 'numeric' };
+  document.getElementById('clock-date').textContent =
+    now.toLocaleDateString('en-US', options);
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============ WEATHER (Open-Meteo — no API key needed) ============
+const WMO_CODES = {
+  0: ['Clear sky', '☀️'],
+  1: ['Mostly clear', '🌤️'],
+  2: ['Partly cloudy', '⛅'],
+  3: ['Overcast', '☁️'],
+  45: ['Foggy', '🌫️'],
+  48: ['Icy fog', '🌫️'],
+  51: ['Light drizzle', '🌦️'],
+  53: ['Drizzle', '🌦️'],
+  55: ['Heavy drizzle', '🌧️'],
+  61: ['Light rain', '🌦️'],
+  63: ['Rain', '🌧️'],
+  65: ['Heavy rain', '🌧️'],
+  71: ['Light snow', '🌨️'],
+  73: ['Snow', '🌨️'],
+  75: ['Heavy snow', '❄️'],
+  77: ['Snow grains', '🌨️'],
+  80: ['Light showers', '🌦️'],
+  81: ['Showers', '🌧️'],
+  82: ['Heavy showers', '🌧️'],
+  85: ['Snow showers', '🌨️'],
+  86: ['Heavy snow showers', '❄️'],
+  95: ['Thunderstorm', '⛈️'],
+  96: ['Thunderstorm + hail', '⛈️'],
+  99: ['Heavy thunderstorm', '⛈️'],
+};
+
+async function fetchWeather() {
+  const el = document.getElementById('weather');
+
+  try {
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+    );
+    const { latitude: lat, longitude: lon } = pos.coords;
+
+    const unit = CONFIG.weatherUnits === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+    const windUnit = unit === 'fahrenheit' ? 'mph' : 'kmh';
+    const resp = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m` +
+      `&temperature_unit=${unit}&wind_speed_unit=${windUnit}&timezone=auto`
+    );
+    const data = await resp.json();
+    const c = data.current;
+
+    const [desc, icon] = WMO_CODES[c.weather_code] || ['Unknown', '🌡️'];
+    const unitSymbol = unit === 'fahrenheit' ? '°F' : '°C';
+    const windLabel = unit === 'fahrenheit' ? 'mph' : 'km/h';
+
+    el.innerHTML = `
+      <div class="weather-icon">${icon}</div>
+      <div class="weather-info">
+        <div class="weather-temp">${Math.round(c.temperature_2m)}${unitSymbol}</div>
+        <div class="weather-desc">${desc}</div>
+        <div class="weather-details">
+          <span>💧 ${c.relative_humidity_2m}%</span>
+          <span>💨 ${Math.round(c.wind_speed_10m)} ${windLabel}</span>
+          <span>🌡️ ${Math.round(c.apparent_temperature)}${unitSymbol} feels</span>
+        </div>
+      </div>`;
+
+    document.getElementById('status-left').textContent =
+      `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+  } catch (err) {
+    el.innerHTML = `<div class="error">Weather: ${err.message}</div>`;
+  }
+}
+
+fetchWeather();
+setInterval(fetchWeather, CONFIG.weatherRefreshMs);
+
+// ============ CALENDAR ============
+async function fetchCalendar() {
+  const el = document.getElementById('calendar-events');
+
+  if (CONFIG.proxyUrl) {
+    try {
+      const resp = await fetch(CONFIG.proxyUrl + '?action=events');
+      const data = await resp.json();
+      renderEvents(data.events || []);
+      document.getElementById('status-right').textContent =
+        `Synced ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      el.innerHTML = `<div class="error">Calendar: ${err.message}</div>`;
+    }
+    return;
+  }
+
+  // Demo mode
+  renderDemoEvents();
+}
+
+function renderEvents(events) {
+  const el = document.getElementById('calendar-events');
+  const now = new Date();
+
+  if (!events.length) {
+    el.innerHTML = '<div class="no-events">No events today</div>';
+    return;
+  }
+
+  el.innerHTML = events.map(event => {
+    const start = event.start?.dateTime ? new Date(event.start.dateTime) : null;
+    const end = event.end?.dateTime ? new Date(event.end.dateTime) : null;
+    const allDay = !start;
+    const isNow = start && end && now >= start && now <= end;
+
+    const timeStr = allDay ? 'All day' :
+      start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const title = event.summary || 'Untitled';
+    const safeTitle = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeLoc = event.location
+      ? event.location.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      : '';
+
+    return `
+      <div class="event ${isNow ? 'now' : ''}">
+        <div class="event-bar"></div>
+        <div class="event-time">${timeStr}</div>
+        <div class="event-content">
+          <div class="event-title">${safeTitle}</div>
+          ${safeLoc ? `<div class="event-location">${safeLoc}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderDemoEvents() {
+  const el = document.getElementById('calendar-events');
+  const now = new Date();
+  const h = now.getHours();
+  const fmtH = n => { const h12 = ((n%24)%12)||12; return `${h12}:00 ${(n%24)>=12?'PM':'AM'}`; };
+
+  el.innerHTML = `
+    <div class="event now">
+      <div class="event-bar"></div>
+      <div class="event-time">${fmtH(h)}</div>
+      <div class="event-content">
+        <div class="event-title">Kiosk Running — Demo Mode</div>
+        <div class="event-location">Deploy the Google Apps Script to see real events</div>
+      </div>
+    </div>
+    <div class="event">
+      <div class="event-bar"></div>
+      <div class="event-time">${fmtH(h+2)}</div>
+      <div class="event-content">
+        <div class="event-title">Set proxyUrl in CONFIG</div>
+        <div class="event-location">See google-apps-script.js for instructions</div>
+      </div>
+    </div>`;
+}
+
+fetchCalendar();
+setInterval(fetchCalendar, CONFIG.calendarRefreshMs);
+
+// ============ KEEP ALIVE ============
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      await navigator.wakeLock.request('screen');
+    }
+  } catch (e) {}
+}
+requestWakeLock();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => e.preventDefault());
+
+// ============ NEWS TICKER ============
+async function fetchNews() {
+  if (!CONFIG.proxyUrl) {
+    document.getElementById('news-scroll').innerHTML =
+      '<div class="news-item">Deploy Apps Script proxy for live news</div>';
+    return;
+  }
+
+  try {
+    const resp = await fetch(CONFIG.proxyUrl + '?action=news');
+    const data = await resp.json();
+    const articles = data.articles || [];
+
+    if (!articles.length) {
+      document.getElementById('news-scroll').innerHTML =
+        '<div class="news-item">No headlines available</div>';
+      return;
+    }
+
+    // Build ticker content — duplicate for seamless loop
+    const items = articles.map(a =>
+      `<div class="news-item"><span class="news-source">${a.source}</span> ${a.title.replace(/</g, '&lt;')}</div>`
+    ).join('<span class="news-dot">&bull;</span>');
+
+    const scrollEl = document.getElementById('news-scroll');
+    scrollEl.innerHTML = items + '<span class="news-dot">&bull;</span>' + items;
+
+    // Set animation speed based on content width
+    requestAnimationFrame(() => {
+      const width = scrollEl.scrollWidth / 2;
+      const speed = 60; // pixels per second
+      const duration = width / speed;
+      scrollEl.style.animationDuration = duration + 's';
+    });
+  } catch (err) {
+    document.getElementById('news-scroll').innerHTML =
+      `<div class="news-item">News: ${err.message}</div>`;
+  }
+}
+
+fetchNews();
+setInterval(fetchNews, CONFIG.newsRefreshMs);
+</script>
+</body>
+</html>
