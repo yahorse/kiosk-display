@@ -76,52 +76,109 @@
 
   .weather-icon { font-size: clamp(36px, 5vw, 56px); }
   .weather-info { display: flex; flex-direction: column; }
+  .weather-temp { font-size: clamp(28px, 4vw, 44px); font-weight: 600; }
+  .weather-desc { font-size: clamp(12px, 1.8vw, 16px); color: #888; text-transform: capitalize; }
+  .weather-details { display: flex; gap: 16px; margin-top: 4px; font-size: clamp(10px, 1.4vw, 13px); color: #666; }
+  .weather-details span { display: flex; align-items: center; gap: 4px; }
 
-  .weather-temp {
-    font-size: clamp(28px, 4vw, 44px);
-    font-weight: 600;
-  }
-
-  .weather-desc {
-    font-size: clamp(12px, 1.8vw, 16px);
-    color: #888;
-    text-transform: capitalize;
-  }
-
-  .weather-details {
-    display: flex;
-    gap: 16px;
-    margin-top: 4px;
-    font-size: clamp(10px, 1.4vw, 13px);
-    color: #666;
-  }
-
-  .weather-details span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
+  /* Right panel: Month grid + today's events */
   .right-panel {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    gap: 12px;
   }
 
-  .calendar-header {
+  /* Monthly calendar grid */
+  .month-header {
     font-size: clamp(14px, 2vw, 20px);
     font-weight: 600;
     color: #888;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  .month-grid .day-label {
+    text-align: center;
+    font-size: clamp(9px, 1.2vw, 11px);
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .month-grid .day {
+    text-align: center;
+    font-size: clamp(11px, 1.4vw, 14px);
+    padding: 4px 2px;
+    border-radius: 8px;
+    position: relative;
+    color: #666;
+  }
+
+  .month-grid .day.current-month { color: #bbb; }
+  .month-grid .day.today {
+    background: #6366f1;
+    color: white;
+    font-weight: 700;
+  }
+
+  .month-grid .day.has-events::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #6366f1;
+    margin: 1px auto 0;
+  }
+
+  .month-grid .day.today.has-events::after { background: white; }
+
+  .month-grid .day.has-ruth::after {
+    background: #f472b6;
+  }
+
+  .month-grid .day.has-events.has-ruth::after {
+    width: 10px;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #6366f1 50%, #f472b6 50%);
+  }
+
+  .month-grid .day.today.has-events.has-ruth::after {
+    background: linear-gradient(90deg, white 50%, #f472b6 50%);
+  }
+
+  /* Divider */
+  .section-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 4px 0;
+  }
+
+  /* Today's events */
+  .today-header {
+    font-size: clamp(11px, 1.5vw, 14px);
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     padding-left: 4px;
   }
 
   .calendar-events {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     overflow-y: auto;
     flex: 1;
     scrollbar-width: none;
@@ -132,10 +189,10 @@
   .event {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 16px 20px;
+    border-radius: 10px;
+    padding: 10px 14px;
     display: flex;
-    gap: 16px;
+    gap: 10px;
     align-items: flex-start;
     transition: background 0.3s;
   }
@@ -146,26 +203,33 @@
   }
 
   .event-time {
-    font-size: clamp(11px, 1.5vw, 14px);
+    font-size: clamp(10px, 1.3vw, 12px);
     color: #6366f1;
     font-weight: 600;
-    min-width: 60px;
-    padding-top: 2px;
+    min-width: 55px;
+    padding-top: 1px;
   }
 
+  .event.ruth .event-time { color: #f472b6; }
   .event.now .event-time { color: #818cf8; }
   .event-content { flex: 1; }
 
   .event-title {
-    font-size: clamp(13px, 1.8vw, 17px);
+    font-size: clamp(11px, 1.5vw, 14px);
     font-weight: 500;
     line-height: 1.3;
   }
 
+  .event-owner {
+    font-size: clamp(9px, 1.1vw, 11px);
+    color: #555;
+    margin-top: 1px;
+  }
+
   .event-location {
-    font-size: clamp(10px, 1.3vw, 13px);
-    color: #666;
-    margin-top: 3px;
+    font-size: clamp(9px, 1.1vw, 11px);
+    color: #555;
+    margin-top: 1px;
   }
 
   .event-bar {
@@ -173,15 +237,30 @@
     border-radius: 3px;
     background: #6366f1;
     align-self: stretch;
-    min-height: 20px;
+    min-height: 16px;
   }
+
+  .event.ruth .event-bar { background: #f472b6; }
 
   .no-events {
     color: #444;
-    font-size: clamp(14px, 2vw, 18px);
+    font-size: clamp(12px, 1.5vw, 15px);
     text-align: center;
-    margin-top: 40px;
+    margin-top: 16px;
   }
+
+  /* Legend */
+  .cal-legend {
+    display: flex;
+    gap: 16px;
+    padding-left: 4px;
+    font-size: clamp(9px, 1.1vw, 11px);
+    color: #555;
+  }
+  .cal-legend span { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .legend-dot.you { background: #6366f1; }
+  .legend-dot.ruth { background: #f472b6; }
 
   /* News ticker */
   .news-ticker {
@@ -227,16 +306,8 @@
     flex-shrink: 0;
   }
 
-  .news-source {
-    color: #6366f1;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-  }
-
-  .news-dot {
-    color: #333;
-  }
+  .news-source { color: #6366f1; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  .news-dot { color: #333; }
 
   @keyframes ticker {
     0% { transform: translateX(0); }
@@ -255,20 +326,10 @@
   }
 
   .loading { color: #444; font-size: 14px; }
-
-  .error {
-    color: #ef4444;
-    font-size: 13px;
-    padding: 12px;
-    background: rgba(239, 68, 68, 0.1);
-    border-radius: 10px;
-  }
+  .error { color: #ef4444; font-size: 13px; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 10px; }
 
   @media (max-aspect-ratio: 1/1) {
-    body {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-    }
+    body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   }
 </style>
 </head>
@@ -285,7 +346,14 @@
 </div>
 
 <div class="right-panel">
-  <div class="calendar-header">Today's Schedule</div>
+  <div class="month-header" id="month-header">---</div>
+  <div class="month-grid" id="month-grid"></div>
+  <div class="cal-legend">
+    <span><span class="legend-dot you"></span> You</span>
+    <span><span class="legend-dot ruth"></span> Ruth</span>
+  </div>
+  <div class="section-divider"></div>
+  <div class="today-header">Today</div>
   <div class="calendar-events" id="calendar-events">
     <div class="loading">Loading calendar...</div>
   </div>
@@ -304,20 +372,11 @@
 </div>
 
 <script>
-// ============ CONFIG ============
 const CONFIG = {
-  // Google Apps Script proxy URL (deploy google-apps-script.js as a web app)
-  // Leave empty for demo mode
   proxyUrl: 'https://script.google.com/macros/s/AKfycbyQjgAtglM0tZDvYJc5YBHisk-Lad7brys6nfRZJRoc8gtffPi0NRiICmQCWQwhYMP7lQ/exec',
-
-  // Weather units: 'fahrenheit' or 'celsius'
   weatherUnits: 'celsius',
-
-  // Fallback location if GPS denied (Dublin, Ireland)
   fallbackLat: 53.35,
   fallbackLon: -6.26,
-
-  // Refresh intervals
   weatherRefreshMs: 15 * 60 * 1000,
   calendarRefreshMs: 5 * 60 * 1000,
   newsRefreshMs: 10 * 60 * 1000,
@@ -330,49 +389,28 @@ function updateClock() {
   const m = String(now.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';
   const h12 = h % 12 || 12;
-
   document.getElementById('clock-time').innerHTML =
     `${h12}:${m} <span class="clock-seconds">${ampm}</span>`;
-
   const options = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('clock-date').textContent =
     now.toLocaleDateString('en-US', options);
 }
-
 setInterval(updateClock, 1000);
 updateClock();
 
-// ============ WEATHER (Open-Meteo — no API key needed) ============
+// ============ WEATHER ============
 const WMO_CODES = {
-  0: ['Clear sky', '☀️'],
-  1: ['Mostly clear', '🌤️'],
-  2: ['Partly cloudy', '⛅'],
-  3: ['Overcast', '☁️'],
-  45: ['Foggy', '🌫️'],
-  48: ['Icy fog', '🌫️'],
-  51: ['Light drizzle', '🌦️'],
-  53: ['Drizzle', '🌦️'],
-  55: ['Heavy drizzle', '🌧️'],
-  61: ['Light rain', '🌦️'],
-  63: ['Rain', '🌧️'],
-  65: ['Heavy rain', '🌧️'],
-  71: ['Light snow', '🌨️'],
-  73: ['Snow', '🌨️'],
-  75: ['Heavy snow', '❄️'],
-  77: ['Snow grains', '🌨️'],
-  80: ['Light showers', '🌦️'],
-  81: ['Showers', '🌧️'],
-  82: ['Heavy showers', '🌧️'],
-  85: ['Snow showers', '🌨️'],
-  86: ['Heavy snow showers', '❄️'],
-  95: ['Thunderstorm', '⛈️'],
-  96: ['Thunderstorm + hail', '⛈️'],
-  99: ['Heavy thunderstorm', '⛈️'],
+  0:['Clear sky','☀️'],1:['Mostly clear','🌤️'],2:['Partly cloudy','⛅'],3:['Overcast','☁️'],
+  45:['Foggy','🌫️'],48:['Icy fog','🌫️'],51:['Light drizzle','🌦️'],53:['Drizzle','🌦️'],
+  55:['Heavy drizzle','🌧️'],61:['Light rain','🌦️'],63:['Rain','🌧️'],65:['Heavy rain','🌧️'],
+  71:['Light snow','🌨️'],73:['Snow','🌨️'],75:['Heavy snow','❄️'],77:['Snow grains','🌨️'],
+  80:['Light showers','🌦️'],81:['Showers','🌧️'],82:['Heavy showers','🌧️'],
+  85:['Snow showers','🌨️'],86:['Heavy snow showers','❄️'],
+  95:['Thunderstorm','⛈️'],96:['Thunderstorm + hail','⛈️'],99:['Heavy thunderstorm','⛈️'],
 };
 
 async function fetchWeather() {
   const el = document.getElementById('weather');
-
   try {
     let lat, lon;
     try {
@@ -385,7 +423,6 @@ async function fetchWeather() {
       lat = CONFIG.fallbackLat;
       lon = CONFIG.fallbackLon;
     }
-
     const unit = CONFIG.weatherUnits === 'fahrenheit' ? 'fahrenheit' : 'celsius';
     const windUnit = unit === 'fahrenheit' ? 'mph' : 'kmh';
     const resp = await fetch(
@@ -395,11 +432,9 @@ async function fetchWeather() {
     );
     const data = await resp.json();
     const c = data.current;
-
     const [desc, icon] = WMO_CODES[c.weather_code] || ['Unknown', '🌡️'];
     const unitSymbol = unit === 'fahrenheit' ? '°F' : '°C';
     const windLabel = unit === 'fahrenheit' ? 'mph' : 'km/h';
-
     el.innerHTML = `
       <div class="weather-icon">${icon}</div>
       <div class="weather-info">
@@ -411,97 +446,138 @@ async function fetchWeather() {
           <span>🌡️ ${Math.round(c.apparent_temperature)}${unitSymbol} feels</span>
         </div>
       </div>`;
-
-    document.getElementById('status-left').textContent =
-      `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    document.getElementById('status-left').textContent = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
   } catch (err) {
     el.innerHTML = `<div class="error">Weather: ${err.message}</div>`;
   }
 }
-
 fetchWeather();
 setInterval(fetchWeather, CONFIG.weatherRefreshMs);
 
-// ============ CALENDAR ============
-async function fetchCalendar() {
-  const el = document.getElementById('calendar-events');
+// ============ MONTHLY CALENDAR + EVENTS ============
+let monthEvents = [];
 
-  if (CONFIG.proxyUrl) {
-    try {
-      const resp = await fetch(CONFIG.proxyUrl + '?action=events');
-      const data = await resp.json();
-      renderEvents(data.events || []);
-      document.getElementById('status-right').textContent =
-        `Synced ${new Date().toLocaleTimeString()}`;
-    } catch (err) {
-      el.innerHTML = `<div class="error">Calendar: ${err.message}</div>`;
-    }
-    return;
+function renderMonthGrid(events) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+
+  document.getElementById('month-header').textContent =
+    now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+
+  // Build event lookup by day
+  const eventDays = {};
+  const ruthDays = {};
+  for (const ev of events) {
+    const dateStr = ev.start.dateTime || ev.start.date;
+    if (!dateStr) continue;
+    const d = new Date(dateStr).getDate();
+    if (ev.isRuth) ruthDays[d] = true;
+    else eventDays[d] = true;
   }
 
-  // Demo mode
-  renderDemoEvents();
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  // Monday-start week: convert Sun=0 to Mon-start (Mon=0, Sun=6)
+  const startOffset = (firstDay + 6) % 7;
+
+  let html = '';
+  const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  for (const label of dayLabels) {
+    html += `<div class="day-label">${label}</div>`;
+  }
+
+  // Previous month trailing days
+  for (let i = startOffset - 1; i >= 0; i--) {
+    html += `<div class="day">${daysInPrev - i}</div>`;
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const classes = ['day', 'current-month'];
+    if (d === today) classes.push('today');
+    if (eventDays[d]) classes.push('has-events');
+    if (ruthDays[d]) classes.push('has-ruth');
+    html += `<div class="${classes.join(' ')}">${d}</div>`;
+  }
+
+  // Next month leading days
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="day">${d}</div>`;
+  }
+
+  document.getElementById('month-grid').innerHTML = html;
 }
 
-function renderEvents(events) {
+function renderTodayEvents(events) {
   const el = document.getElementById('calendar-events');
   const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
 
-  if (!events.length) {
+  // Filter to today only
+  const todayEvents = events.filter(ev => {
+    const dateStr = ev.start.dateTime || ev.start.date || '';
+    return dateStr.startsWith(todayStr);
+  });
+
+  if (!todayEvents.length) {
     el.innerHTML = '<div class="no-events">No events today</div>';
     return;
   }
 
-  el.innerHTML = events.map(event => {
+  el.innerHTML = todayEvents.map(event => {
     const start = event.start?.dateTime ? new Date(event.start.dateTime) : null;
     const end = event.end?.dateTime ? new Date(event.end.dateTime) : null;
     const allDay = !start;
     const isNow = start && end && now >= start && now <= end;
+    const isRuth = event.isRuth;
 
     const timeStr = allDay ? 'All day' :
-      start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      start.toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit', hour12: false });
 
     const title = event.summary || 'Untitled';
     const safeTitle = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const safeLoc = event.location
-      ? event.location.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      : '';
+    const safeLoc = event.location ? event.location.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
 
     return `
-      <div class="event ${isNow ? 'now' : ''}">
+      <div class="event ${isNow ? 'now' : ''} ${isRuth ? 'ruth' : ''}">
         <div class="event-bar"></div>
         <div class="event-time">${timeStr}</div>
         <div class="event-content">
           <div class="event-title">${safeTitle}</div>
+          ${isRuth ? '<div class="event-owner">Ruth</div>' : ''}
           ${safeLoc ? `<div class="event-location">${safeLoc}</div>` : ''}
         </div>
       </div>`;
   }).join('');
 }
 
-function renderDemoEvents() {
-  const el = document.getElementById('calendar-events');
-  const now = new Date();
-  const h = now.getHours();
-  const fmtH = n => { const h12 = ((n%24)%12)||12; return `${h12}:00 ${(n%24)>=12?'PM':'AM'}`; };
+async function fetchCalendar() {
+  if (!CONFIG.proxyUrl) {
+    renderMonthGrid([]);
+    document.getElementById('calendar-events').innerHTML =
+      '<div class="no-events">Set proxyUrl in config</div>';
+    return;
+  }
 
-  el.innerHTML = `
-    <div class="event now">
-      <div class="event-bar"></div>
-      <div class="event-time">${fmtH(h)}</div>
-      <div class="event-content">
-        <div class="event-title">Kiosk Running — Demo Mode</div>
-        <div class="event-location">Deploy the Google Apps Script to see real events</div>
-      </div>
-    </div>
-    <div class="event">
-      <div class="event-bar"></div>
-      <div class="event-time">${fmtH(h+2)}</div>
-      <div class="event-content">
-        <div class="event-title">Set proxyUrl in CONFIG</div>
-        <div class="event-location">See google-apps-script.js for instructions</div>
-      </div>
-    </div>`;
+  try {
+    const resp = await fetch(CONFIG.proxyUrl + '?action=events&month=full');
+    const data = await resp.json();
+    monthEvents = data.events || [];
+    renderMonthGrid(monthEvents);
+    renderTodayEvents(monthEvents);
+    document.getElementById('status-right').textContent =
+      `Synced ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    document.getElementById('calendar-events').innerHTML =
+      `<div class="error">Calendar: ${err.message}</div>`;
+    renderMonthGrid([]);
+  }
 }
 
 fetchCalendar();
@@ -509,22 +585,16 @@ setInterval(fetchCalendar, CONFIG.calendarRefreshMs);
 
 // ============ KEEP ALIVE ============
 async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      await navigator.wakeLock.request('screen');
-    }
-  } catch (e) {}
+  try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {}
 }
 requestWakeLock();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') requestWakeLock();
 });
-
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('selectstart', e => e.preventDefault());
 
 // ============ NEWS TICKER ============
-// Multiple RSS-to-JSON services as fallbacks
 const RSS_SERVICES = [
   (url) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
   (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -552,7 +622,6 @@ async function fetchNews() {
   const allArticles = [];
 
   for (const feed of NEWS_FEEDS) {
-    // Try rss2json first
     try {
       const resp = await fetch(RSS_SERVICES[0](feed.url));
       const data = await resp.json();
@@ -563,8 +632,6 @@ async function fetchNews() {
         continue;
       }
     } catch (e) {}
-
-    // Fallback: allorigins CORS proxy + XML parse
     try {
       const resp = await fetch(RSS_SERVICES[1](feed.url));
       const text = await resp.text();
@@ -572,7 +639,6 @@ async function fetchNews() {
     } catch (e) {}
   }
 
-  // If still nothing, try the Apps Script proxy
   if (!allArticles.length && CONFIG.proxyUrl) {
     try {
       const resp = await fetch(CONFIG.proxyUrl + '?action=news');
@@ -584,13 +650,11 @@ async function fetchNews() {
   }
 
   const scrollEl = document.getElementById('news-scroll');
-
   if (!allArticles.length) {
     scrollEl.innerHTML = '<div class="news-item">No headlines available</div>';
     return;
   }
 
-  // Shuffle
   for (let i = allArticles.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [allArticles[i], allArticles[j]] = [allArticles[j], allArticles[i]];
@@ -604,9 +668,7 @@ async function fetchNews() {
 
   requestAnimationFrame(() => {
     const width = scrollEl.scrollWidth / 2;
-    const speed = 60;
-    const duration = width / speed;
-    scrollEl.style.animationDuration = duration + 's';
+    scrollEl.style.animationDuration = (width / 60) + 's';
   });
 }
 
