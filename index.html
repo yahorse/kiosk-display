@@ -91,35 +91,36 @@
 
   /* Monthly calendar grid */
   .month-header {
-    font-size: clamp(14px, 2vw, 20px);
+    font-size: clamp(16px, 2.5vw, 24px);
     font-weight: 600;
     color: #888;
     text-transform: uppercase;
     letter-spacing: 2px;
     padding-left: 4px;
+    margin-bottom: 4px;
   }
 
   .month-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
+    gap: 4px;
     padding: 0 4px;
   }
 
   .month-grid .day-label {
     text-align: center;
-    font-size: clamp(9px, 1.2vw, 11px);
+    font-size: clamp(11px, 1.5vw, 14px);
     color: #555;
     font-weight: 600;
     text-transform: uppercase;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
   }
 
   .month-grid .day {
     text-align: center;
-    font-size: clamp(11px, 1.4vw, 14px);
-    padding: 4px 2px;
-    border-radius: 8px;
+    font-size: clamp(14px, 2vw, 20px);
+    padding: 8px 4px;
+    border-radius: 10px;
     position: relative;
     color: #666;
     cursor: pointer;
@@ -145,8 +146,8 @@
   .month-grid .day.has-events::after {
     content: '';
     display: block;
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #6366f1;
     margin: 1px auto 0;
@@ -159,8 +160,8 @@
   }
 
   .month-grid .day.has-events.has-ruth::after {
-    width: 10px;
-    height: 4px;
+    width: 14px;
+    height: 6px;
     border-radius: 2px;
     background: linear-gradient(90deg, #6366f1 50%, #f472b6 50%);
   }
