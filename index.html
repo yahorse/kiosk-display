@@ -122,9 +122,20 @@
     border-radius: 8px;
     position: relative;
     color: #666;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
   }
 
   .month-grid .day.current-month { color: #bbb; }
+  .month-grid .day.selected {
+    background: rgba(99, 102, 241, 0.25);
+    color: white;
+    font-weight: 600;
+  }
+  .month-grid .day.selected.today {
+    background: #6366f1;
+  }
   .month-grid .day.today {
     background: #6366f1;
     color: white;
@@ -456,6 +467,32 @@ setInterval(fetchWeather, CONFIG.weatherRefreshMs);
 
 // ============ MONTHLY CALENDAR + EVENTS ============
 let monthEvents = [];
+let selectedDay = new Date().getDate();
+let autoResetTimer = null;
+
+function selectDay(day) {
+  selectedDay = day;
+  highlightSelected();
+  renderDayEvents(monthEvents, day);
+
+  // Auto-reset to today after 30 seconds of no interaction
+  clearTimeout(autoResetTimer);
+  const today = new Date().getDate();
+  if (day !== today) {
+    autoResetTimer = setTimeout(() => {
+      selectedDay = new Date().getDate();
+      highlightSelected();
+      renderDayEvents(monthEvents, selectedDay);
+    }, 30000);
+  }
+}
+
+function highlightSelected() {
+  document.querySelectorAll('.month-grid .day.current-month').forEach(el => {
+    const d = parseInt(el.textContent);
+    el.classList.toggle('selected', d === selectedDay);
+  });
+}
 
 function renderMonthGrid(events) {
   const now = new Date();
@@ -466,7 +503,6 @@ function renderMonthGrid(events) {
   document.getElementById('month-header').textContent =
     now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
-  // Build event lookup by day
   const eventDays = {};
   const ruthDays = {};
   for (const ev of events) {
@@ -477,11 +513,9 @@ function renderMonthGrid(events) {
     else eventDays[d] = true;
   }
 
-  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
-
-  // Monday-start week: convert Sun=0 to Mon-start (Mon=0, Sun=6)
   const startOffset = (firstDay + 6) % 7;
 
   let html = '';
@@ -490,21 +524,19 @@ function renderMonthGrid(events) {
     html += `<div class="day-label">${label}</div>`;
   }
 
-  // Previous month trailing days
   for (let i = startOffset - 1; i >= 0; i--) {
     html += `<div class="day">${daysInPrev - i}</div>`;
   }
 
-  // Current month
   for (let d = 1; d <= daysInMonth; d++) {
     const classes = ['day', 'current-month'];
     if (d === today) classes.push('today');
+    if (d === selectedDay) classes.push('selected');
     if (eventDays[d]) classes.push('has-events');
     if (ruthDays[d]) classes.push('has-ruth');
-    html += `<div class="${classes.join(' ')}">${d}</div>`;
+    html += `<div class="${classes.join(' ')}" onclick="selectDay(${d})">${d}</div>`;
   }
 
-  // Next month leading days
   const totalCells = startOffset + daysInMonth;
   const remaining = (7 - (totalCells % 7)) % 7;
   for (let d = 1; d <= remaining; d++) {
@@ -514,27 +546,38 @@ function renderMonthGrid(events) {
   document.getElementById('month-grid').innerHTML = html;
 }
 
-function renderTodayEvents(events) {
+function renderDayEvents(events, day) {
   const el = document.getElementById('calendar-events');
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const targetDate = new Date(year, month, day);
+  const targetStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const isToday = day === now.getDate();
 
-  // Filter to today only
-  const todayEvents = events.filter(ev => {
+  // Update header
+  if (isToday) {
+    document.querySelector('.today-header').textContent = 'Today';
+  } else {
+    document.querySelector('.today-header').textContent =
+      targetDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  const dayEvents = events.filter(ev => {
     const dateStr = ev.start.dateTime || ev.start.date || '';
-    return dateStr.startsWith(todayStr);
+    return dateStr.startsWith(targetStr);
   });
 
-  if (!todayEvents.length) {
-    el.innerHTML = '<div class="no-events">No events today</div>';
+  if (!dayEvents.length) {
+    el.innerHTML = `<div class="no-events">No events${isToday ? ' today' : ''}</div>`;
     return;
   }
 
-  el.innerHTML = todayEvents.map(event => {
+  el.innerHTML = dayEvents.map(event => {
     const start = event.start?.dateTime ? new Date(event.start.dateTime) : null;
     const end = event.end?.dateTime ? new Date(event.end.dateTime) : null;
     const allDay = !start;
-    const isNow = start && end && now >= start && now <= end;
+    const isNow = isToday && start && end && now >= start && now <= end;
     const isRuth = event.isRuth;
 
     const timeStr = allDay ? 'All day' :
@@ -570,7 +613,7 @@ async function fetchCalendar() {
     const data = await resp.json();
     monthEvents = data.events || [];
     renderMonthGrid(monthEvents);
-    renderTodayEvents(monthEvents);
+    renderDayEvents(monthEvents, selectedDay);
     document.getElementById('status-right').textContent =
       `Synced ${new Date().toLocaleTimeString()}`;
   } catch (err) {
